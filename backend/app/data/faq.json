@@ -1,27 +1,62 @@
 [
   {
     "question": "How can I make a hotel reservation?",
-    "answer": "You can book a hotel by providing your city, check-in/check-out dates, and number of guests. I will guide you step by step.",
+    "answer": "Şehir, giriş-çıkış tarihleri ve misafir sayısını paylaşın; sohbet üzerinden adım adım ilerleyebilirsiniz. Bu arayüz demodur.",
     "tags": ["booking", "reservation"]
   },
   {
+    "question": "Otel rezervasyonu nasıl yapılır?",
+    "answer": "Rezervasyon için şehir, tarih ve misafir bilgisini yazmanız yeterli; asistan sizi yönlendirir. Gerçek ödeme bu demoda yoktur.",
+    "tags": ["booking", "tr"]
+  },
+  {
     "question": "What is your cancellation policy?",
-    "answer": "Most bookings allow free cancellation up to 24 hours before check-in. I can check the exact policy for your reservation.",
+    "answer": "Çoğu rezervasyonda check-in'den 24 saat öncesine kadar ücretsiz iptal mümkün olabilir; kesin koşul otele ve fiyat planına göre değişir.",
     "tags": ["cancellation", "policy"]
   },
   {
+    "question": "İptal politikası nedir?",
+    "answer": "İptal süreleri ve ücretleri seçilen tarife ve otele göre değişir. PNR veya e-posta ile kontrol edebilirsiniz.",
+    "tags": ["cancellation", "tr", "policy"]
+  },
+  {
     "question": "Do you offer breakfast?",
-    "answer": "Breakfast availability depends on the selected hotel and room plan. I can filter options that include breakfast.",
+    "answer": "Kahvaltı, seçilen otele ve oda planına bağlıdır; kahvaltı dahil seçenekleri filtreleyebilirsiniz.",
     "tags": ["amenities", "breakfast"]
   },
   {
+    "question": "Kahvaltı dahil mi?",
+    "answer": "Kahvaltının dahil olup olmadığı oda tipine ve tarifeye göre değişir; rezervasyon sırasında 'kahvaltı dahil' filtresi kullanılabilir.",
+    "tags": ["amenities", "breakfast", "tr"]
+  },
+  {
     "question": "Can I change my reservation dates?",
-    "answer": "Yes, if the reservation is changeable. Share your booking reference and the new dates.",
+    "answer": "Tarih değişikliği, 'değiştirilebilir' tarifelerde mümkündür. Rezervasyon referansı ve yeni tarihleri paylaşın.",
     "tags": ["modification", "dates"]
   },
   {
+    "question": "Depozito veya ön ödeme alınıyor mu?",
+    "answer": "Bazı tarifelerde depozito veya ön provizyon istenebilir; tutar ve iade koşulları otele göre değişir.",
+    "tags": ["payment", "deposit", "tr"]
+  },
+  {
+    "question": "Çocuk politikası nasıl işler?",
+    "answer": "Çocuk yaş sınırı ve ek yatak ücretleri otele göre değişir; aile odası veya ekstra yatak taleplerini rezervasyonda belirtin.",
+    "tags": ["family", "children", "tr"]
+  },
+  {
     "question": "Do you have family-friendly rooms?",
-    "answer": "Yes, I can suggest family-friendly hotels with extra beds, larger rooms, and kid-friendly amenities.",
+    "answer": "Aile dostu otellerde ek yatak, geniş oda ve çocuk dostu olanaklar seçilebilir; misafir sayısı ve yaşları paylaşın.",
     "tags": ["family", "rooms"]
+  },
+  {
+    "question": "Geç giriş veya erken çıkış mümkün mü?",
+    "answer": "Geç giriş ve erken çıkış müsaitlik ve ücrete tabidir; otelle veya resepsiyonla teyit edilmelidir.",
+    "tags": ["checkin", "checkout", "tr"]
+  },
+  {
+    "question": "Evcil hayvan kabul ediliyor mu?",
+    "answer": "Pet politikası otele göre değişir; bazı tesisler ek ücret veya sınırlı oda tipi uygular.",
+    "tags": ["pets", "policy", "tr"]
   }
 ]
