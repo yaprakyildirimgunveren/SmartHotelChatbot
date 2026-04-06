@@ -1,0 +1,15 @@
+# Visual Studio / VS Code
+.vs/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+*.egg-info/
+.eggs/
+
+# Local env & data (see backend/.env.example)
+.env
+**/chroma_db/

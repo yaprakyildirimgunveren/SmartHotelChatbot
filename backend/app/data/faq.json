@@ -1,0 +1,27 @@
+[
+  {
+    "question": "How can I make a hotel reservation?",
+    "answer": "You can book a hotel by providing your city, check-in/check-out dates, and number of guests. I will guide you step by step.",
+    "tags": ["booking", "reservation"]
+  },
+  {
+    "question": "What is your cancellation policy?",
+    "answer": "Most bookings allow free cancellation up to 24 hours before check-in. I can check the exact policy for your reservation.",
+    "tags": ["cancellation", "policy"]
+  },
+  {
+    "question": "Do you offer breakfast?",
+    "answer": "Breakfast availability depends on the selected hotel and room plan. I can filter options that include breakfast.",
+    "tags": ["amenities", "breakfast"]
+  },
+  {
+    "question": "Can I change my reservation dates?",
+    "answer": "Yes, if the reservation is changeable. Share your booking reference and the new dates.",
+    "tags": ["modification", "dates"]
+  },
+  {
+    "question": "Do you have family-friendly rooms?",
+    "answer": "Yes, I can suggest family-friendly hotels with extra beds, larger rooms, and kid-friendly amenities.",
+    "tags": ["family", "rooms"]
+  }
+]
