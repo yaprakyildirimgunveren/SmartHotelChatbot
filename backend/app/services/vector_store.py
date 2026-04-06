@@ -25,7 +25,13 @@ def ensure_seeded(items: List[Dict[str, Any]]) -> None:
     texts = [item["question"] + " " + item["answer"] for item in items]
     embeddings = model.encode(texts).tolist()
     ids = [f"faq-{index}" for index in range(len(items))]
-    metadatas = [{"answer": item["answer"], "tags": item.get("tags", [])} for item in items]
+    metadatas = [
+        {
+            "answer": item["answer"],
+            "tags": ",".join(item.get("tags", [])),
+        }
+        for item in items
+    ]
 
     collection.add(ids=ids, documents=texts, embeddings=embeddings, metadatas=metadatas)
 
