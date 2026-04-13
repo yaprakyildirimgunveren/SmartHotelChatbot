@@ -99,3 +99,7 @@ docker compose down
 - `CHROMA_PATH`
 
 `faq.json` içeriğini değiştirdiyseniz, eski vektörler kalksın diye `chroma_db` klasörünü silip uygulamayı yeniden başlatın (ilk açılışta yeniden doldurulur).
+
+### Deploy
+Render / Railway / Cloud Run hızlı kurulum notları için:
+- `DEPLOYMENT.md`
