@@ -78,6 +78,20 @@ docker build -t smart-hotel-chatbot ./backend
 docker run -p 8001:8001 smart-hotel-chatbot
 ```
 
+### Docker Compose
+```
+docker compose up --build
+```
+
+- Arayüz: http://localhost:8001
+- Sağlık: http://localhost:8001/health
+- Chroma verisi named volume (`chroma_data`) ile kalıcıdır.
+
+Kapatmak için:
+```
+docker compose down
+```
+
 ### Environment
 `backend/.env.example` dosyasını `.env` olarak kopyalayın:
 - `MODEL_NAME`
