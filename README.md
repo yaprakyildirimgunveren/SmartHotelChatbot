@@ -103,3 +103,6 @@ docker compose down
 ### Deploy
 Render / Railway / Cloud Run hızlı kurulum notları için:
 - `DEPLOYMENT.md`
+
+### Guardrails
+- Domain ve güvenlik davranış kuralları: `GUARDRAILS.md`

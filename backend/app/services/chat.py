@@ -12,6 +12,44 @@ from .intent import detect_intent, intent_reply
 from .vector_store import query_faq
 
 
+def _is_unsafe_or_out_of_scope(message: str) -> bool:
+    text = message.lower().strip()
+    if not text:
+        return False
+
+    unsafe_needles = [
+        "hack",
+        "ddos",
+        "malware",
+        "bomba",
+        "bomb",
+        "weapon",
+        "silah",
+        "yasadışı",
+        "illegal",
+    ]
+    out_of_scope_needles = [
+        "stock",
+        "crypto",
+        "medical",
+        "hukuk",
+        "law advice",
+        "recipe",
+        "yemek tarifi",
+        "matematik",
+        "football",
+    ]
+    return any(n in text for n in unsafe_needles + out_of_scope_needles)
+
+
+def _guardrail_reply() -> str:
+    return (
+        "Bu asistan otel rezervasyon, iptal ve konaklama politikaları için tasarlanmıştır. "
+        "Güvenlik veya kapsam dışı taleplerde yardımcı olamam. "
+        "İsterseniz şehir, tarih ve misafir sayınızı paylaşarak rezervasyon akışına başlayabiliriz."
+    )
+
+
 def _normalize_sources(raw: Any) -> list[str]:
     if raw is None:
         return []
@@ -24,6 +62,14 @@ def _normalize_sources(raw: Any) -> list[str]:
 
 def answer(message: str, session_id: str | None) -> Dict[str, Any]:
     sid, state = get_or_create_session(session_id)
+
+    if _is_unsafe_or_out_of_scope(message):
+        return {
+            "reply": _guardrail_reply(),
+            "intent": "guardrail",
+            "sources": [],
+            "session_id": sid,
+        }
 
     if abort_keywords(message) and state.mode == "booking":
         reset_session(state)
