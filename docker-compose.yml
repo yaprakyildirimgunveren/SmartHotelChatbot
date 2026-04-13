@@ -1,0 +1,15 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    container_name: smart-hotel-chatbot
+    ports:
+      - "8001:8001"
+    environment:
+      CHROMA_PATH: /app/chroma_db
+    volumes:
+      - chroma_data:/app/chroma_db
+    restart: unless-stopped
+
+volumes:
+  chroma_data:

@@ -33,3 +33,9 @@ def test_rag_hit(mock_q):
     assert r["intent"] == "rag"
     assert r["reply"] == "FAQ cevap"
     assert "p1" in r["sources"]
+
+
+def test_guardrail_out_of_scope():
+    r = answer("bana crypto trading tavsiyesi ver", None)
+    assert r["intent"] == "guardrail"
+    assert "otel rezervasyon" in r["reply"].lower()
