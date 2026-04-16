@@ -72,6 +72,17 @@ cd backend
 pytest
 ```
 
+### Evaluation (mini benchmark)
+Hazır örnek veri kümesi: `eval/cases.jsonl`
+
+```
+cd backend
+python scripts/evaluate.py ../eval/cases.jsonl
+```
+
+Bu komut intent tahmin doğruluğunu ve mismatch örneklerini raporlar.
+`expected_any` alanı ile birden fazla kabul edilebilir intent tanımlayabilirsiniz.
+
 ### Docker
 ```
 docker build -t smart-hotel-chatbot ./backend
