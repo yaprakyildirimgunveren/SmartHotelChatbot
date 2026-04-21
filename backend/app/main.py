@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import List
+from typing import Any, List
 
 from fastapi import FastAPI
 from pydantic import BaseModel
@@ -20,6 +20,7 @@ class ChatResponse(BaseModel):
     reply: str
     intent: str
     sources: List[str]
+    recommendations: List[dict[str, Any]]
     session_id: str
 
 

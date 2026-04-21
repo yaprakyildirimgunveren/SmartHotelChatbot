@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from datetime import datetime
+from typing import Any
 
 
 def _extract_month(check_in: str | None) -> int | None:
@@ -43,29 +44,90 @@ def _season_multiplier(month: int | None) -> float:
     return 1.0
 
 
-def recommend_room(city: str, check_in: str | None, guests: int) -> str:
-    base_price = 85
-    if guests <= 1:
-        room_type = "Standart Oda"
-        capacity_note = "1 misafir"
-    elif guests == 2:
-        room_type = "Deluxe Double"
-        capacity_note = "2 misafir"
-    elif guests <= 4:
-        room_type = "Aile Odası"
-        capacity_note = f"{guests} misafir"
-    else:
-        room_type = "Bağlantılı Aile Suiti"
-        capacity_note = f"{guests} misafir"
+_ROOM_INVENTORY = [
+    {"hotel": "Golden Bosphorus", "city": "istanbul", "room_type": "Deluxe Double", "capacity": 2, "price_eur": 178, "breakfast": True, "refundable": True, "view": "sea"},
+    {"hotel": "Cappadocia Stone", "city": "kapadokya", "room_type": "Aile Odası", "capacity": 4, "price_eur": 142, "breakfast": True, "refundable": False, "view": "city"},
+    {"hotel": "Antalya Marina", "city": "antalya", "room_type": "Standart Oda", "capacity": 2, "price_eur": 130, "breakfast": False, "refundable": True, "view": "sea"},
+    {"hotel": "Ege Comfort", "city": "izmir", "room_type": "Aile Odası", "capacity": 4, "price_eur": 124, "breakfast": True, "refundable": True, "view": "city"},
+    {"hotel": "Bodrum Blue", "city": "bodrum", "room_type": "Bağlantılı Aile Suiti", "capacity": 6, "price_eur": 245, "breakfast": True, "refundable": True, "view": "sea"},
+]
 
+
+def _normalize_city(city: str) -> str:
+    return city.strip().lower()
+
+
+def parse_preferences(text: str) -> dict[str, bool]:
+    low = text.lower()
+    breakfast = any(k in low for k in ("kahvaltı", "kahvalti", "breakfast"))
+    refundable = any(k in low for k in ("iptal", "refund", "esnek", "flex"))
+    sea_view = any(k in low for k in ("deniz", "sea view", "manzara"))
+    return {"breakfast": breakfast, "refundable": refundable, "sea_view": sea_view}
+
+
+def recommend_rooms(city: str, check_in: str | None, guests: int, preferences: str) -> list[dict[str, Any]]:
+    pref = parse_preferences(preferences)
+    city_norm = _normalize_city(city)
     month = _extract_month(check_in)
-    estimated_price = int(base_price * _city_price_multiplier(city) * _season_multiplier(month) * max(1, guests * 0.85))
-    low = max(estimated_price - 20, 50)
-    high = estimated_price + 25
+    season = _season_multiplier(month)
+    city_mul = _city_price_multiplier(city_norm)
 
-    return (
-        "Oda önerisi:\n"
-        f"- Önerilen tip: {room_type} ({capacity_note})\n"
-        f"- Tahmini gecelik fiyat aralığı: {low} - {high} EUR\n"
-        "- İsterseniz kahvaltı dahil veya iptal edilebilir seçenekleri de filtreleyebilirim."
-    )
+    candidates: list[dict[str, Any]] = []
+    for room in _ROOM_INVENTORY:
+        if room["capacity"] < guests:
+            continue
+        if room["city"] != city_norm:
+            continue
+        if pref["breakfast"] and not room["breakfast"]:
+            continue
+        if pref["refundable"] and not room["refundable"]:
+            continue
+        if pref["sea_view"] and room["view"] != "sea":
+            continue
+
+        score = 100 - (room["price_eur"] * season * city_mul) / 10
+        score += 8 if room["capacity"] == guests else 0
+        score += 4 if room["breakfast"] else 0
+        score += 3 if room["refundable"] else 0
+        final_price = int(room["price_eur"] * season * city_mul)
+        candidates.append(
+            {
+                "hotel": room["hotel"],
+                "room_type": room["room_type"],
+                "price_eur": final_price,
+                "breakfast": room["breakfast"],
+                "refundable": room["refundable"],
+                "view": room["view"],
+                "score": round(score, 2),
+            }
+        )
+
+    if not candidates:
+        base_price = int(95 * season * city_mul * max(1, guests * 0.8))
+        fallback_room = "Aile Odası" if guests >= 3 else "Deluxe Double"
+        return [
+            {
+                "hotel": f"{city.title()} Central",
+                "room_type": fallback_room,
+                "price_eur": max(base_price, 60),
+                "breakfast": pref["breakfast"],
+                "refundable": pref["refundable"],
+                "view": "city",
+                "score": 50.0,
+            }
+        ]
+
+    candidates.sort(key=lambda x: (-x["score"], x["price_eur"]))
+    return candidates[:3]
+
+
+def recommendations_to_text(items: list[dict[str, Any]]) -> str:
+    lines = ["Oda önerileri:"]
+    for idx, item in enumerate(items, start=1):
+        lines.append(
+            f"- {idx}) {item['hotel']} | {item['room_type']} | {item['price_eur']} EUR/gece | "
+            f"kahvaltı: {'evet' if item['breakfast'] else 'hayır'} | "
+            f"esnek iptal: {'evet' if item['refundable'] else 'hayır'}"
+        )
+    lines.append("- İsterseniz bütçe aralığına göre yeniden sıralayabilirim.")
+    return "\n".join(lines)

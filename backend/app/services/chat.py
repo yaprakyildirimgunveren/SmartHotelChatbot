@@ -68,6 +68,7 @@ def answer(message: str, session_id: str | None) -> Dict[str, Any]:
             "reply": _guardrail_reply(),
             "intent": "guardrail",
             "sources": [],
+            "recommendations": [],
             "session_id": sid,
         }
 
@@ -77,15 +78,17 @@ def answer(message: str, session_id: str | None) -> Dict[str, Any]:
             "reply": "Rezervasyon akışı iptal edildi. Başka bir konuda yardımcı olabilirim.",
             "intent": "aborted",
             "sources": [],
+            "recommendations": [],
             "session_id": sid,
         }
 
     if state.mode == "booking":
-        text = booking_reply(state, message)
+        text, recommendations = booking_reply(state, message)
         return {
             "reply": text,
             "intent": "booking",
             "sources": [],
+            "recommendations": recommendations,
             "session_id": sid,
         }
 
@@ -96,6 +99,7 @@ def answer(message: str, session_id: str | None) -> Dict[str, Any]:
             "reply": first,
             "intent": "booking",
             "sources": [],
+            "recommendations": [],
             "session_id": sid,
         }
 
@@ -105,6 +109,7 @@ def answer(message: str, session_id: str | None) -> Dict[str, Any]:
             "reply": reply,
             "intent": intent,
             "sources": [],
+            "recommendations": [],
             "session_id": sid,
         }
 
@@ -121,6 +126,7 @@ def answer(message: str, session_id: str | None) -> Dict[str, Any]:
             ),
             "intent": "fallback",
             "sources": [],
+            "recommendations": [],
             "session_id": sid,
         }
 
@@ -131,5 +137,6 @@ def answer(message: str, session_id: str | None) -> Dict[str, Any]:
         "reply": answer_text,
         "intent": "rag",
         "sources": tags,
+        "recommendations": [],
         "session_id": sid,
     }

@@ -30,14 +30,19 @@ def test_booking_flow_happy_path():
     s = UserSession()
     start_booking(s)
     assert s.mode == "booking"
-    r1 = booking_reply(s, " Antalya ")
+    r1, rec1 = booking_reply(s, " Antalya ")
+    assert rec1 == []
     assert "tarih" in r1.lower() or "giriş" in r1.lower()
     assert s.step == "dates"
     booking_reply(s, "2026-05-01 - 2026-05-07")
     assert s.step == "guests"
-    out = booking_reply(s, "2")
+    ask_pref, rec2 = booking_reply(s, "2")
+    assert rec2 == []
+    assert "tercih" in ask_pref.lower()
+    out, rec3 = booking_reply(s, "kahvaltı dahil, esnek iptal")
     assert "Özet" in out
-    assert "Oda önerisi" in out
+    assert "Oda önerileri" in out
+    assert len(rec3) >= 1
     assert s.mode == "idle"
 
 
