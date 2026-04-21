@@ -3,12 +3,12 @@ from __future__ import annotations
 import re
 import uuid
 from dataclasses import dataclass
-from typing import Literal
+from typing import Any, Literal
 
-from .room_recommendation import recommend_room
+from .room_recommendation import recommendations_to_text, recommend_rooms
 
 Mode = Literal["idle", "booking"]
-Step = Literal["city", "dates", "guests", "complete"]
+Step = Literal["city", "dates", "guests", "preferences", "complete"]
 
 
 @dataclass
@@ -18,6 +18,8 @@ class UserSession:
     check_in: str | None = None
     check_out: str | None = None
     guests: str | None = None
+    preferences: str | None = None
+    last_recommendations: list[dict[str, Any]] | None = None
     step: Step = "city"
 
 
@@ -81,6 +83,8 @@ def start_booking(session: UserSession) -> str:
     session.check_in = None
     session.check_out = None
     session.guests = None
+    session.preferences = None
+    session.last_recommendations = []
     session.step = "city"
     return "Hangi şehirde konaklamak istersiniz?"
 
@@ -91,13 +95,14 @@ def reset_session(session: UserSession) -> None:
     session.check_in = None
     session.check_out = None
     session.guests = None
+    session.preferences = None
     session.step = "city"
 
 
-def booking_reply(session: UserSession, message: str) -> str:
+def booking_reply(session: UserSession, message: str) -> tuple[str, list[dict[str, Any]]]:
     msg = message.strip()
     if not msg:
-        return "Lütfen bir yanıt yazın."
+        return "Lütfen bir yanıt yazın.", []
 
     if session.step == "city":
         session.city = msg
@@ -105,34 +110,50 @@ def booking_reply(session: UserSession, message: str) -> str:
         return (
             "Giriş ve çıkış tarihlerinizi yazın "
             "(ör. 2026-04-10 - 2026-04-15 veya 10.04.2026 - 15.04.2026)."
-        )
+        ), []
 
     if session.step == "dates":
         ci, co = parse_dates(msg)
         if not ci:
-            return "Tarihleri anlayamadım; lütfen iki tarihi birlikte veya aralık olarak yazın."
+            return "Tarihleri anlayamadım; lütfen iki tarihi birlikte veya aralık olarak yazın.", []
         session.check_in = ci
         session.check_out = co if co else ci
         session.step = "guests"
-        return "Kaç misafir? (sayı yazın, örn. 2)"
+        return "Kaç misafir? (sayı yazın, örn. 2)", []
 
     if session.step == "guests":
         g = parse_guests(msg)
         if not g:
-            return "Lütfen misafir sayısını rakamla yazın (ör. 2)."
+            return "Lütfen misafir sayısını rakamla yazın (ör. 2).", []
         session.guests = g
-        recommendation = recommend_room(session.city or "Genel", session.check_in, int(g))
+        session.step = "preferences"
+        return (
+            "Tercihleriniz var mı? (örn. kahvaltı dahil, esnek iptal, deniz manzarası) "
+            "Yoksa 'yok' yazabilirsiniz."
+        ), []
+
+    if session.step == "preferences":
+        session.preferences = msg
+        recommendations = recommend_rooms(
+            city=session.city or "Genel",
+            check_in=session.check_in,
+            guests=int(session.guests or "1"),
+            preferences="" if msg.lower() == "yok" else msg,
+        )
+        session.last_recommendations = recommendations
+        recommendation_text = recommendations_to_text(recommendations)
         summary = (
             "Özet (demo):\n"
             f"- Şehir: {session.city}\n"
             f"- Giriş: {session.check_in}\n"
             f"- Çıkış: {session.check_out}\n"
             f"- Misafir: {session.guests}\n\n"
-            f"{recommendation}\n\n"
+            f"{recommendation_text}\n\n"
             "Bu bir demodur; gerçek ödeme veya kesin rezervasyon yoktur. "
             "Yeni rezervasyon için yine rezervasyon isteği gönderebilirsiniz."
         )
+        result = session.last_recommendations or []
         reset_session(session)
-        return summary
+        return summary, result
 
-    return "Bir sorun oluştu; yeni rezervasyon için tekrar deneyin."
+    return "Bir sorun oluştu; yeni rezervasyon için tekrar deneyin.", []
