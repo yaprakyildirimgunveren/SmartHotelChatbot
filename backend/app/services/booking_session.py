@@ -5,6 +5,8 @@ import uuid
 from dataclasses import dataclass
 from typing import Literal
 
+from .room_recommendation import recommend_room
+
 Mode = Literal["idle", "booking"]
 Step = Literal["city", "dates", "guests", "complete"]
 
@@ -119,12 +121,14 @@ def booking_reply(session: UserSession, message: str) -> str:
         if not g:
             return "Lütfen misafir sayısını rakamla yazın (ör. 2)."
         session.guests = g
+        recommendation = recommend_room(session.city or "Genel", session.check_in, int(g))
         summary = (
             "Özet (demo):\n"
             f"- Şehir: {session.city}\n"
             f"- Giriş: {session.check_in}\n"
             f"- Çıkış: {session.check_out}\n"
             f"- Misafir: {session.guests}\n\n"
+            f"{recommendation}\n\n"
             "Bu bir demodur; gerçek ödeme veya kesin rezervasyon yoktur. "
             "Yeni rezervasyon için yine rezervasyon isteği gönderebilirsiniz."
         )

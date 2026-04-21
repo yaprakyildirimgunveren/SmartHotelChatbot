@@ -37,6 +37,7 @@ def test_booking_flow_happy_path():
     assert s.step == "guests"
     out = booking_reply(s, "2")
     assert "Özet" in out
+    assert "Oda önerisi" in out
     assert s.mode == "idle"
 
 
