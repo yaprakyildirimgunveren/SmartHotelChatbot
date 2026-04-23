@@ -5,6 +5,7 @@ from app.services.booking_session import (
     clear_sessions,
     get_or_create_session,
     parse_dates,
+    parse_budget,
     parse_guests,
     reset_session,
     start_booking,
@@ -26,6 +27,11 @@ def test_parse_guests():
     assert parse_guests("misafir 3") == "3"
 
 
+def test_parse_budget():
+    assert parse_budget("max 180 eur") == 180
+    assert parse_budget("abc") is None
+
+
 def test_booking_flow_happy_path():
     s = UserSession()
     start_booking(s)
@@ -39,10 +45,16 @@ def test_booking_flow_happy_path():
     ask_pref, rec2 = booking_reply(s, "2")
     assert rec2 == []
     assert "tercih" in ask_pref.lower()
-    out, rec3 = booking_reply(s, "kahvaltı dahil, esnek iptal")
+    ask_budget, rec3 = booking_reply(s, "kahvaltı dahil, esnek iptal")
+    assert "bütçe" in ask_budget.lower()
+    assert rec3 == []
+    ask_select, rec4 = booking_reply(s, "220")
+    assert "öneriden birini seç" in ask_select.lower()
+    assert len(rec4) >= 1
+    out, rec5 = booking_reply(s, "1")
     assert "Özet" in out
-    assert "Oda önerileri" in out
-    assert len(rec3) >= 1
+    assert "Seçilen öneri" in out
+    assert len(rec5) >= 1
     assert s.mode == "idle"
 
 

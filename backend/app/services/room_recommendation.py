@@ -65,7 +65,13 @@ def parse_preferences(text: str) -> dict[str, bool]:
     return {"breakfast": breakfast, "refundable": refundable, "sea_view": sea_view}
 
 
-def recommend_rooms(city: str, check_in: str | None, guests: int, preferences: str) -> list[dict[str, Any]]:
+def recommend_rooms(
+    city: str,
+    check_in: str | None,
+    guests: int,
+    preferences: str,
+    max_budget: int | None = None,
+) -> list[dict[str, Any]]:
     pref = parse_preferences(preferences)
     city_norm = _normalize_city(city)
     month = _extract_month(check_in)
@@ -90,6 +96,8 @@ def recommend_rooms(city: str, check_in: str | None, guests: int, preferences: s
         score += 4 if room["breakfast"] else 0
         score += 3 if room["refundable"] else 0
         final_price = int(room["price_eur"] * season * city_mul)
+        if max_budget is not None and final_price > max_budget:
+            continue
         candidates.append(
             {
                 "hotel": room["hotel"],
@@ -105,6 +113,8 @@ def recommend_rooms(city: str, check_in: str | None, guests: int, preferences: s
     if not candidates:
         base_price = int(95 * season * city_mul * max(1, guests * 0.8))
         fallback_room = "Aile Odası" if guests >= 3 else "Deluxe Double"
+        if max_budget is not None and max(base_price, 60) > max_budget:
+            return []
         return [
             {
                 "hotel": f"{city.title()} Central",
@@ -122,6 +132,8 @@ def recommend_rooms(city: str, check_in: str | None, guests: int, preferences: s
 
 
 def recommendations_to_text(items: list[dict[str, Any]]) -> str:
+    if not items:
+        return "Kriterlerinize uygun oda bulunamadı. Bütçeyi artırabilir veya tercihleri gevşetebilirsiniz."
     lines = ["Oda önerileri:"]
     for idx, item in enumerate(items, start=1):
         lines.append(

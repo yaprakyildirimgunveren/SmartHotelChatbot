@@ -12,3 +12,9 @@ def test_recommend_for_family_room():
     text = recommendations_to_text(items)
     assert len(items) >= 1
     assert "Oda önerileri" in text
+
+
+def test_recommend_respects_budget():
+    items = recommend_rooms("Istanbul", "2026-07-10", 2, "", max_budget=120)
+    assert items == []
+    assert "uygun oda bulunamadı" in recommendations_to_text(items).lower()

@@ -8,7 +8,7 @@ from typing import Any, Literal
 from .room_recommendation import recommendations_to_text, recommend_rooms
 
 Mode = Literal["idle", "booking"]
-Step = Literal["city", "dates", "guests", "preferences", "complete"]
+Step = Literal["city", "dates", "guests", "preferences", "budget", "select", "complete"]
 
 
 @dataclass
@@ -19,7 +19,9 @@ class UserSession:
     check_out: str | None = None
     guests: str | None = None
     preferences: str | None = None
+    max_budget: int | None = None
     last_recommendations: list[dict[str, Any]] | None = None
+    selected_recommendation: dict[str, Any] | None = None
     step: Step = "city"
 
 
@@ -77,6 +79,23 @@ def parse_guests(text: str) -> str | None:
     return m.group(0) if m else None
 
 
+def parse_budget(text: str) -> int | None:
+    m = re.search(r"\d+", text)
+    if not m:
+        return None
+    return int(m.group(0))
+
+
+def parse_selection(text: str, max_index: int) -> int | None:
+    m = re.search(r"\d+", text)
+    if not m:
+        return None
+    choice = int(m.group(0))
+    if choice < 1 or choice > max_index:
+        return None
+    return choice
+
+
 def start_booking(session: UserSession) -> str:
     session.mode = "booking"
     session.city = None
@@ -84,7 +103,9 @@ def start_booking(session: UserSession) -> str:
     session.check_out = None
     session.guests = None
     session.preferences = None
+    session.max_budget = None
     session.last_recommendations = []
+    session.selected_recommendation = None
     session.step = "city"
     return "Hangi şehirde konaklamak istersiniz?"
 
@@ -96,6 +117,9 @@ def reset_session(session: UserSession) -> None:
     session.check_out = None
     session.guests = None
     session.preferences = None
+    session.max_budget = None
+    session.last_recommendations = []
+    session.selected_recommendation = None
     session.step = "city"
 
 
@@ -134,25 +158,67 @@ def booking_reply(session: UserSession, message: str) -> tuple[str, list[dict[st
 
     if session.step == "preferences":
         session.preferences = msg
+        session.step = "budget"
+        return "Maksimum gecelik bütçeniz nedir? (EUR, örn. 180)", []
+
+    if session.step == "budget":
+        budget = parse_budget(msg)
+        if not budget:
+            return "Bütçeyi rakamla yazın (örn. 180).", []
+        session.max_budget = budget
         recommendations = recommend_rooms(
             city=session.city or "Genel",
             check_in=session.check_in,
             guests=int(session.guests or "1"),
-            preferences="" if msg.lower() == "yok" else msg,
+            preferences="" if (session.preferences or "").lower() == "yok" else (session.preferences or ""),
+            max_budget=budget,
         )
         session.last_recommendations = recommendations
         recommendation_text = recommendations_to_text(recommendations)
+        session.step = "select"
+        if not recommendations:
+            summary = (
+                "Özet (demo):\n"
+                f"- Şehir: {session.city}\n"
+                f"- Giriş: {session.check_in}\n"
+                f"- Çıkış: {session.check_out}\n"
+                f"- Misafir: {session.guests}\n"
+                f"- Maksimum bütçe: {session.max_budget} EUR\n\n"
+                f"{recommendation_text}\n\n"
+                "Bu bir demodur; gerçek ödeme veya kesin rezervasyon yoktur. "
+                "Yeni rezervasyon için yine rezervasyon isteği gönderebilirsiniz."
+            )
+            reset_session(session)
+            return summary, []
+        return (
+            f"{recommendation_text}\n\n"
+            "Bu 3 öneriden birini seçmek için sadece numarasını yazın (örn. 1)."
+        ), recommendations
+
+    if session.step == "select":
+        options = session.last_recommendations or []
+        if not options:
+            reset_session(session)
+            return "Öneri listesi bulunamadı; rezervasyonu yeniden başlatabilirsiniz.", []
+        picked = parse_selection(msg, len(options))
+        if not picked:
+            return f"Lütfen 1 ile {len(options)} arasında bir seçim yapın.", options
+        session.selected_recommendation = options[picked - 1]
         summary = (
             "Özet (demo):\n"
             f"- Şehir: {session.city}\n"
             f"- Giriş: {session.check_in}\n"
             f"- Çıkış: {session.check_out}\n"
-            f"- Misafir: {session.guests}\n\n"
-            f"{recommendation_text}\n\n"
+            f"- Misafir: {session.guests}\n"
+            f"- Maksimum bütçe: {session.max_budget} EUR\n"
+            f"- Seçilen öneri: {session.selected_recommendation['hotel']} / "
+            f"{session.selected_recommendation['room_type']} / "
+            f"{session.selected_recommendation['price_eur']} EUR-gece\n\n"
+            f"{recommendations_to_text(options)}\n\n"
             "Bu bir demodur; gerçek ödeme veya kesin rezervasyon yoktur. "
             "Yeni rezervasyon için yine rezervasyon isteği gönderebilirsiniz."
         )
-        result = session.last_recommendations or []
+        result = options
         reset_session(session)
         return summary, result
 
